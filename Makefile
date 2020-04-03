@@ -208,11 +208,9 @@ CFLAGS += -g1
 CXXFLAGS += -g1
 LDFLAGS ?=
 
-# TODO(benesch): remove filter-outs below when golang/go#26144 and
-# golang/go#16651, respectively, are fixed.
-CGO_CFLAGS = $(filter-out -g%,$(CFLAGS))
+CGO_CFLAGS = $(CFLAGS)
 CGO_CXXFLAGS = $(CXXFLAGS)
-CGO_LDFLAGS = $(filter-out -static,$(LDFLAGS))
+CGO_LDFLAGS = $(LDFLAGS)
 
 export CFLAGS CXXFLAGS LDFLAGS CGO_CFLAGS CGO_CXXFLAGS CGO_LDFLAGS
 
