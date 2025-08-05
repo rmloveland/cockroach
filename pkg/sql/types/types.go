@@ -461,6 +461,14 @@ var (
 	INet = &T{InternalType: InternalType{
 		Family: INetFamily, Oid: oid.T_inet, Locale: &emptyLocale}}
 
+	// Email is the type of an email address value. For example:
+	//
+	//   user@example.com
+	//   admin@company.org
+	//
+	Email = &T{InternalType: InternalType{
+		Family: EmailFamily, Oid: oidext.T_email, Locale: &emptyLocale}}
+
 	// Geometry is the type of a geospatial Geometry object.
 	Geometry = &T{
 		InternalType: InternalType{
@@ -1576,6 +1584,7 @@ var familyNames = map[Family]redact.SafeString{
 	GeographyFamily:      "geography",
 	GeometryFamily:       "geometry",
 	INetFamily:           "inet",
+	EmailFamily:          "email",
 	IntFamily:            "int",
 	IntervalFamily:       "interval",
 	JsonFamily:           "jsonb",
@@ -2177,7 +2186,7 @@ func (t *T) SQLStringForError() redact.RedactableString {
 		return redact.Sprint(redact.Safe(t.SQLString()))
 	case BoolFamily, IntFamily, FloatFamily, DecimalFamily, DateFamily, TimestampFamily,
 		IntervalFamily, StringFamily, BytesFamily, TimestampTZFamily, CollatedStringFamily, OidFamily,
-		UnknownFamily, UuidFamily, INetFamily, TimeFamily, JsonFamily, TimeTZFamily, BitFamily,
+		UnknownFamily, UuidFamily, INetFamily, EmailFamily, TimeFamily, JsonFamily, TimeTZFamily, BitFamily,
 		GeometryFamily, GeographyFamily, Box2DFamily, VoidFamily, EncodedKeyFamily, TSQueryFamily,
 		TSVectorFamily, AnyFamily, PGLSNFamily, PGVectorFamily, RefCursorFamily:
 		// These types do not contain other types, and do not require redaction.

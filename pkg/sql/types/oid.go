@@ -107,6 +107,7 @@ var OidToType = map[oid.Oid]*T{
 	oidext.T_box2d:     Box2D,
 	oidext.T_pgvector:  PGVector,
 	oidext.T_jsonpath:  Jsonpath,
+	oidext.T_email:     Email,
 	oidext.T_citext:    CIText,
 }
 
@@ -156,6 +157,7 @@ var oidToArrayOid = map[oid.Oid]oid.Oid{
 	oidext.T_geography: oidext.T__geography,
 	oidext.T_box2d:     oidext.T__box2d,
 	oidext.T_pgvector:  oidext.T__pgvector,
+	oidext.T_email:     oidext.T__email,
 	oidext.T_jsonpath:  oidext.T__jsonpath,
 	oidext.T_citext:    oidext.T__citext,
 }
@@ -182,6 +184,7 @@ var familyToOid = map[Family]oid.Oid{
 	UuidFamily:           oid.T_uuid,
 	ArrayFamily:          oid.T_anyarray,
 	INetFamily:           oid.T_inet,
+	EmailFamily:          oidext.T_email,
 	TimeFamily:           oid.T_time,
 	TimeTZFamily:         oid.T_timetz,
 	JsonFamily:           oid.T_jsonb,

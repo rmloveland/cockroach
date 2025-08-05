@@ -1,0 +1,168 @@
+statement ok
+CREATE TABLE e (email_addr email PRIMARY KEY,
+               backup_email email,
+               alt_email email,
+               UNIQUE INDEX i_backup_email (backup_email))
+
+statement ok
+INSERT INTO e VALUES
+  ('user@example.com', 'backup@example.com', 'alt@example.com'),
+  ('admin@company.org', 'admin.backup@company.org', 'admin.alt@company.org'),
+  ('test@domain.net', 'test.backup@domain.net', 'test.alt@domain.net')
+
+query TTT
+SELECT * FROM e ORDER BY email_addr
+----
+admin@company.org admin.backup@company.org admin.alt@company.org
+test@domain.net test.backup@domain.net test.alt@domain.net
+user@example.com backup@example.com alt@example.com
+
+query TTT
+SELECT * FROM e WHERE email_addr < 'test@domain.net'::email
+----
+admin@company.org admin.backup@company.org admin.alt@company.org
+
+query TTT
+SELECT * FROM e WHERE email_addr <= 'test@domain.net'::email ORDER BY email_addr
+----
+admin@company.org admin.backup@company.org admin.alt@company.org
+test@domain.net test.backup@domain.net test.alt@domain.net
+
+statement error duplicate key value
+INSERT INTO e VALUES ('user@example.com')
+
+statement error duplicate key value
+INSERT INTO e VALUES ('new@test.com', 'backup@example.com')
+
+statement error invalid email format
+INSERT INTO e VALUES ('invalid-email')
+
+statement error invalid email format
+INSERT INTO e VALUES ('missing-at-sign.com')
+
+statement error invalid email format
+INSERT INTO e VALUES ('@domain.com')
+
+statement error invalid email format
+INSERT INTO e VALUES ('user@')
+
+statement error invalid email format
+INSERT INTO e VALUES ('user@domain')
+
+statement error unsupported comparison operator: <email> = <string>
+SELECT email_addr FROM e WHERE email_addr='user@example.com'::string
+
+statement ok
+SELECT email_addr FROM e WHERE email_addr='user@example.com'::email
+
+query T
+SELECT email_addr FROM e WHERE email_addr='user@example.com'
+----
+user@example.com
+
+query T
+SELECT backup_email FROM e WHERE backup_email='backup@example.com'
+----
+backup@example.com
+
+query T
+SELECT email_addr FROM e WHERE email_addr IN ('user@example.com', 'admin@company.org') ORDER BY email_addr
+----
+admin@company.org
+user@example.com
+
+statement ok
+INSERT INTO e VALUES ('new1@test.com'::email)
+
+statement ok
+INSERT INTO e VALUES ('new2@test.com'::email, 'new2.backup@test.com'::email)
+
+statement error value type string doesn't match type email
+INSERT INTO e VALUES ('user@invalid.com'::string)
+
+query T
+SELECT email_addr::email FROM e WHERE email_addr='user@example.com'
+----
+user@example.com
+
+query T
+SELECT email_addr::string FROM e WHERE email_addr='user@example.com'
+----
+user@example.com
+
+statement error invalid cast: email -> int
+SELECT email_addr::int FROM e
+
+statement error invalid cast: email -> uuid
+SELECT email_addr::uuid FROM e
+
+query T
+SELECT ('user@test.com' COLLATE en)::email
+----
+user@test.com
+
+# Test case sensitivity - emails should be case insensitive for domain part
+statement ok
+INSERT INTO e VALUES ('User@EXAMPLE.COM', 'Backup@EXAMPLE.COM', 'Alt@EXAMPLE.COM')
+
+query TTT
+SELECT * FROM e WHERE email_addr = 'user@EXAMPLE.COM' OR email_addr = 'User@example.com' ORDER BY email_addr
+----
+User@EXAMPLE.COM Backup@EXAMPLE.COM Alt@EXAMPLE.COM
+
+# Test various valid email formats
+statement ok
+INSERT INTO e VALUES ('test.user+tag@example-domain.co.uk')
+
+statement ok
+INSERT INTO e VALUES ('user123@sub.domain.org')
+
+statement ok
+INSERT INTO e VALUES ('a@b.co')
+
+# Test edge cases that should be valid
+statement ok
+INSERT INTO e VALUES ('x@y.museum')
+
+# Test concatenation with EMAIL type
+statement ok
+CREATE TABLE t_concat (e) AS SELECT 'user@example.com'::EMAIL
+
+query T
+SELECT e || '@backup' FROM t_concat
+----
+user@example.com@backup
+
+# Test EMAIL arrays
+statement ok
+CREATE TABLE email_list (id INT, emails EMAIL[])
+
+statement ok
+INSERT INTO email_list VALUES 
+  (1, ARRAY['user1@test.com', 'user2@test.com']::EMAIL[]),
+  (2, ARRAY['admin@company.org']::EMAIL[])
+
+query IT
+SELECT * FROM email_list ORDER BY id
+----
+1 {user1@test.com,user2@test.com}
+2 {admin@company.org}
+
+# Test EMAIL in JSON
+statement ok
+CREATE TABLE email_json (data JSONB)
+
+statement ok
+INSERT INTO email_json VALUES ('{"email": "user@example.com"}'::JSONB)
+
+query T
+SELECT data->>'email' FROM email_json
+----
+user@example.com
+
+# Test comparison operators
+query T
+SELECT email_addr FROM e WHERE email_addr > 'admin@company.org' AND email_addr < 'z@z.com' ORDER BY email_addr LIMIT 2
+----
+User@EXAMPLE.COM
+a@b.co

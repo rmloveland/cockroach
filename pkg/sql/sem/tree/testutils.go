@@ -71,6 +71,9 @@ func SampleDatum(t *types.T) Datum {
 	case types.INetFamily:
 		i, _ := ParseDIPAddrFromINetString("127.0.0.1")
 		return i
+	case types.EmailFamily:
+		e, _ := ParseDEmailFromString("user@example.com")
+		return e
 	case types.JsonFamily:
 		j, _ := ParseDJSON(`{"a": "b"}`)
 		return j

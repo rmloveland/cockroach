@@ -397,6 +397,18 @@ func ParseDUuidFromBytes(b []byte) (*DUuid, error) {
 	return NewDUuid(DUuid{uv}), nil
 }
 
+// ParseDEmailFromString parses and returns the *DEmail Datum value represented
+// by the provided input string, or an error.
+func ParseDEmailFromString(s string) (*DEmail, error) {
+	// Basic RFC 5322 email validation regex
+	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	if !emailRegex.MatchString(s) {
+		return nil, pgerror.Newf(pgcode.InvalidTextRepresentation,
+			"invalid email format: %q", s)
+	}
+	return NewDEmail(DEmail{email: s}), nil
+}
+
 // ParseDIPAddrFromINetString parses and returns the *DIPAddr Datum value
 // represented by the provided input INet string, or an error.
 func ParseDIPAddrFromINetString(s string) (*DIPAddr, error) {
@@ -1836,6 +1848,98 @@ func (d *DUuid) Format(ctx *FmtCtx) {
 // Size implements the Datum interface.
 func (d *DUuid) Size() uintptr {
 	return unsafe.Sizeof(*d)
+}
+
+// DEmail is the Email Datum.
+type DEmail struct {
+	email string
+}
+
+// NewDEmail is a helper routine to create a *DEmail initialized from its
+// argument.
+func NewDEmail(d DEmail) *DEmail {
+	return &d
+}
+
+// AsDEmail attempts to retrieve a DEmail from an Expr, returning a DEmail and
+// a flag signifying whether the assertion was successful.
+func AsDEmail(e Expr) (DEmail, bool) {
+	switch t := e.(type) {
+	case *DEmail:
+		return *t, true
+	}
+	return DEmail{}, false
+}
+
+// MustBeDEmail attempts to retrieve a DEmail from an Expr, panicking if the
+// assertion fails.
+func MustBeDEmail(e Expr) DEmail {
+	i, ok := AsDEmail(e)
+	if !ok {
+		panic(errors.AssertionFailedf("expected *DEmail, found %T", e))
+	}
+	return i
+}
+
+// ResolvedType implements the TypedExpr interface.
+func (*DEmail) ResolvedType() *types.T {
+	return types.Email
+}
+
+// Compare implements the Datum interface.
+func (d *DEmail) Compare(ctx context.Context, cmpCtx CompareContext, other Datum) (int, error) {
+	if other == DNull {
+		// NULL is less than any non-NULL value.
+		return 1, nil
+	}
+	v, ok := cmpCtx.UnwrapDatum(ctx, other).(*DEmail)
+	if !ok {
+		return 0, makeUnsupportedComparisonMessage(d, other)
+	}
+	return strings.Compare(d.email, v.email), nil
+}
+
+// Prev implements the Datum interface.
+func (*DEmail) Prev(ctx context.Context, cmpCtx CompareContext) (Datum, bool) {
+	return nil, false
+}
+
+// Next implements the Datum interface.
+func (*DEmail) Next(ctx context.Context, cmpCtx CompareContext) (Datum, bool) {
+	return nil, false
+}
+
+// IsMax implements the Datum interface.
+func (*DEmail) IsMax(ctx context.Context, cmpCtx CompareContext) bool {
+	return false
+}
+
+// IsMin implements the Datum interface.
+func (*DEmail) IsMin(ctx context.Context, cmpCtx CompareContext) bool {
+	return false
+}
+
+// Min implements the Datum interface.
+func (*DEmail) Min(ctx context.Context, cmpCtx CompareContext) (Datum, bool) {
+	return nil, false
+}
+
+// Max implements the Datum interface.
+func (*DEmail) Max(ctx context.Context, cmpCtx CompareContext) (Datum, bool) {
+	return nil, false
+}
+
+// AmbiguousFormat implements the Datum interface.
+func (*DEmail) AmbiguousFormat() bool { return true }
+
+// Format implements the NodeFormatter interface.
+func (d *DEmail) Format(ctx *FmtCtx) {
+	lexbase.EncodeSQLStringWithFlags(&ctx.Buffer, d.email, ctx.flags.EncodeFlags())
+}
+
+// Size implements the Datum interface.
+func (d *DEmail) Size() uintptr {
+	return unsafe.Sizeof(*d) + uintptr(len(d.email))
 }
 
 // DIPAddr is the IPAddr Datum.
@@ -6247,6 +6351,7 @@ var baseDatumTypeSizes = map[types.Family]struct {
 	types.JsonFamily:           {unsafe.Sizeof(DJSON{}), variableSize},
 	types.JsonpathFamily:       {unsafe.Sizeof(DJsonpath{}), variableSize},
 	types.UuidFamily:           {unsafe.Sizeof(DUuid{}), fixedSize},
+	types.EmailFamily:          {unsafe.Sizeof(DEmail{}), variableSize},
 	types.INetFamily:           {unsafe.Sizeof(DIPAddr{}), fixedSize},
 	types.OidFamily:            {unsafe.Sizeof(DOid{}.Oid), fixedSize},
 	types.EnumFamily:           {unsafe.Sizeof(DEnum{}), variableSize},

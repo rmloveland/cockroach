@@ -536,6 +536,7 @@ var (
 		types.IntervalArray,
 		types.UUIDArray,
 		types.INet,
+		types.Email,
 		types.Jsonb,
 		types.Jsonpath,
 		types.PGLSN,
