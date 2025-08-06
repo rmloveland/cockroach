@@ -773,6 +773,13 @@ func TestLogic_edge(
 	runLogicTest(t, "edge")
 }
 
+func TestLogic_email(
+	t *testing.T,
+) {
+	defer leaktest.AfterTest(t)()
+	runLogicTest(t, "email")
+}
+
 func TestLogic_enums(
 	t *testing.T,
 ) {

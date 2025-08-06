@@ -127,6 +127,8 @@ func EncodeWithScratch(
 		return encoding.EncodeIntValue(appendTo, uint32(colID), int64(t.Oid)), scratch, nil
 	case *tree.DEnum:
 		return encoding.EncodeBytesValue(appendTo, uint32(colID), t.PhysicalRep), scratch, nil
+	case *tree.DEmail:
+		return encoding.EncodeBytesValue(appendTo, uint32(colID), t.UnsafeBytes()), scratch, nil
 	case *tree.DVoid:
 		return encoding.EncodeVoidValue(appendTo, uint32(colID)), scratch, nil
 	default:

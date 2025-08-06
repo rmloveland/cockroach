@@ -176,6 +176,11 @@ func Encode(b []byte, val tree.Datum, dir encoding.Direction) ([]byte, error) {
 			return encoding.EncodeBytesAscending(b, t.PhysicalRep), nil
 		}
 		return encoding.EncodeBytesDescending(b, t.PhysicalRep), nil
+	case *tree.DEmail:
+		if dir == encoding.Ascending {
+			return encoding.EncodeStringAscending(b, t.UnsafeString()), nil
+		}
+		return encoding.EncodeStringDescending(b, t.UnsafeString()), nil
 	case *tree.DEncodedKey:
 		// DEncodedKey carries an already encoded key.
 		return append(b, []byte(*t)...), nil

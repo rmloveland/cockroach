@@ -818,6 +818,13 @@ func TestReadCommittedLogic_edge(
 	runLogicTest(t, "edge")
 }
 
+func TestReadCommittedLogic_email(
+	t *testing.T,
+) {
+	defer leaktest.AfterTest(t)()
+	runLogicTest(t, "email")
+}
+
 func TestReadCommittedLogic_enums(
 	t *testing.T,
 ) {

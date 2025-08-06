@@ -69,6 +69,7 @@ func CanHaveCompositeKeyEncoding(typ *types.T) bool {
 		types.OidFamily,
 		types.UuidFamily,
 		types.INetFamily,
+		types.EmailFamily,
 		types.TimeFamily,
 		types.TimeTZFamily,
 		types.BitFamily,

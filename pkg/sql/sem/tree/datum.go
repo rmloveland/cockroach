@@ -1942,6 +1942,38 @@ func (d *DEmail) Size() uintptr {
 	return unsafe.Sizeof(*d) + uintptr(len(d.email))
 }
 
+// UnsafeBytes returns the raw bytes avoiding allocation. It is "Unsafe" because
+// the contract is that callers must not to mutate the bytes but there is
+// nothing stopping that from happening.
+func (d *DEmail) UnsafeBytes() []byte {
+	return encoding.UnsafeConvertStringToBytes(d.email)
+}
+
+// UnsafeString returns the underlying email string. It is "Unsafe" because
+// the contract is that callers must not to mutate the string but there is
+// nothing stopping that from happening.
+func (d *DEmail) UnsafeString() string {
+	return d.email
+}
+
+// String implements the fmt.Stringer interface.
+func (d *DEmail) String() string {
+	var ctx FmtCtx
+	d.Format(&ctx)
+	return ctx.CloseAndGetString()
+}
+
+// TypeCheck implements the Expr interface. It is implemented as an idempotent
+// identity function for Datum.
+func (d *DEmail) TypeCheck(_ context.Context, _ *SemaContext, _ *types.T) (TypedExpr, error) {
+	return d, nil
+}
+
+// Walk implements the Expr interface.
+func (d *DEmail) Walk(_ Visitor) Expr {
+	return d
+}
+
 // DIPAddr is the IPAddr Datum.
 type DIPAddr struct {
 	ipaddr.IPAddr

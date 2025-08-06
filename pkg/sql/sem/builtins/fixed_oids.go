@@ -2753,6 +2753,10 @@ var builtinOidsArray = []string{
 	2790: `any_in(input: anyelement) -> any`,
 	2791: `trigger_out(trigger: trigger) -> bytes`,
 	2792: `trigger_in(input: anyelement) -> trigger`,
+	2793: `emailin(input: anyelement) -> email`,
+	2794: `emailout(email: email) -> bytes`,
+	2795: `emailsend(email: email) -> bytes`,
+	2796: `emailrecv(input: anyelement) -> email`,
 }
 
 var builtinOidsBySignature map[string]oid.Oid

@@ -804,6 +804,13 @@ func TestRepeatableReadLogic_edge(
 	runLogicTest(t, "edge")
 }
 
+func TestRepeatableReadLogic_email(
+	t *testing.T,
+) {
+	defer leaktest.AfterTest(t)()
+	runLogicTest(t, "email")
+}
+
 func TestRepeatableReadLogic_enums(
 	t *testing.T,
 ) {

@@ -222,6 +222,11 @@ func MarshalLegacy(colType *types.T, val tree.Datum) (roachpb.Value, error) {
 			r.SetBytes(v.PhysicalRep)
 			return r, nil
 		}
+	case types.EmailFamily:
+		if v, ok := val.(*tree.DEmail); ok {
+			r.SetString(v.UnsafeString())
+			return r, nil
+		}
 	default:
 		return r, errors.AssertionFailedf("unsupported column type: %s", colType.Family())
 	}
@@ -454,6 +459,16 @@ func UnmarshalLegacy(a *tree.DatumAlloc, typ *types.T, value roachpb.Value) (tre
 			return nil, err
 		}
 		return a.NewDEnum(tree.DEnum{EnumTyp: typ, PhysicalRep: phys, LogicalRep: log}), nil
+	case types.EmailFamily:
+		v, err := value.GetBytes()
+		if err != nil {
+			return nil, err
+		}
+		email, err := tree.ParseDEmailFromString(string(v))
+		if err != nil {
+			return nil, err
+		}
+		return email, nil
 	default:
 		return nil, errors.Errorf("unsupported column type: %s", typ.Family())
 	}
